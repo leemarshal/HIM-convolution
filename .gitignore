@@ -1,0 +1,10 @@
+# CMake
+cmake-build-*/
+
+# Jetbrain
+*.idea/
+
+# Mac
+.DS_Store
+.AppleDouble
+.LSOverride
