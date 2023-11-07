@@ -1,75 +1,76 @@
 #include <iostream>
 #include <fstream>
-#include <array>
+#include <vector>
+#include <cstdint>
 #include "BMPStruct.h"
 
 using namespace std;
 
-void convertToGrayscale(ifstream &inFile, ofstream &outFile, BMPINFOHEADER &infoHeader) {
-    uint8_t pixel[3];
-    uint8_t gray;
-
-    for (int i = 0; i < infoHeader.height; ++i) {
-        for (int j = 0; j < infoHeader.width; ++j) {
-            inFile.read(reinterpret_cast<char*>(pixel), 3);
-            gray = 0.299 * pixel[2] + 0.587 * pixel[1] + 0.114 * pixel[0];
-            pixel[0] = pixel[1] = pixel[2] = gray;
-            outFile.write(reinterpret_cast<char*>(pixel), 3);
-        }
-    }
-}
-
-void flipImageHorizontallyAndVertically(ifstream &inFile, ofstream &outFile, BMPINFOHEADER &infoHeader) {
-    RGBTriple** imageData = new RGBTriple*[infoHeader.height];
-    for (int i = 0; i < infoHeader.height; i++) {
-        imageData[i] = new RGBTriple[infoHeader.width];
-    }
-
-    // 이미지 데이터 읽기
-    for (int y = 0; y < infoHeader.height; y++) {
-        for (int x = 0; x < infoHeader.width; x++) {
-            inFile.read(reinterpret_cast<char*>(&imageData[y][x]), sizeof(RGBTriple));
-        }
-    }
-
-    // 상하좌우 반전하여 출력
-    for (int y = infoHeader.height - 1; y >= 0; y--) {
-        for (int x = infoHeader.width - 1; x >= 0; x--) {
-            outFile.write(reinterpret_cast<char*>(&imageData[y][x]), sizeof(RGBTriple));
-        }
-    }
-
-    for (int i = 0; i < infoHeader.height; i++) {
-        delete[] imageData[i];
-    }
-    delete[] imageData;
-}
-
 int main()
 {
-    ifstream inFile("../apple.bmp", ios::binary);
-    ofstream outFile("../apple_flip.bmp", ios::binary);
+    ifstream templateFile("../assets/hard/apple24_grayscale.bmp", ios::binary);
+    ifstream sourceFile("../assets/hard/total24_grayscale.bmp", ios::binary);
+    ofstream convMapFile("../assets/hard/convolution.bmp", ios::binary);
 
-    if (!inFile) {
+    if (!(templateFile && sourceFile)) {
         cerr << "Error opening input.bmp for reading." << endl;
         return 1;
     }
 
-    BMPFILEHEADER fileHeader;
-    BMPINFOHEADER infoHeader;
+    BMPFILEHEADER templateFileHeader;
+    BMPINFOHEADER templateInfoHeader;
+    BMPFILEHEADER sourceFileHeader;
+    BMPINFOHEADER sourceInfoHeader;
+    BMPFILEHEADER convMapFileHeader;
+    BMPINFOHEADER convMapInfoHeader;
 
-    inFile.read(reinterpret_cast<char*>(&fileHeader), sizeof(fileHeader));
-    inFile.read(reinterpret_cast<char*>(&infoHeader), sizeof(infoHeader));
+    templateFile.read(reinterpret_cast<char*>(&templateFileHeader), sizeof(templateFileHeader));
+    templateFile.read(reinterpret_cast<char*>(&templateInfoHeader), sizeof(templateInfoHeader));
 
-    outFile.write(reinterpret_cast<char*>(&fileHeader), sizeof(fileHeader));
-    outFile.write(reinterpret_cast<char*>(&infoHeader), sizeof(infoHeader));
+    sourceFile.read(reinterpret_cast<char*>(&sourceFileHeader), sizeof(sourceFileHeader));
+    sourceFile.read(reinterpret_cast<char*>(&sourceInfoHeader), sizeof(sourceInfoHeader));
 
-    flipImageHorizontallyAndVertically(inFile, outFile, infoHeader);
+    convMapFileHeader = sourceFileHeader;
+    convMapInfoHeader = sourceInfoHeader;
 
-    inFile.close();
-    outFile.close();
+    convMapFile.write(reinterpret_cast<char*>(&convMapFileHeader), sizeof(convMapFileHeader));
+    convMapFile.write(reinterpret_cast<char*>(&convMapInfoHeader), sizeof(convMapInfoHeader));
 
-    cout << "Flip conversion complete." << endl;
+    RGBTriple black = {0, 0, 0};
+    for (int i = 0; i < convMapInfoHeader.height; ++i) {
+        for (int j = 0; j < convMapInfoHeader.width; ++j) {
+            convMapFile.write(reinterpret_cast<char*>(&black), sizeof(RGBTriple));
+        }
+    }
+    convMapFile.seekp(convMapFileHeader.dataOffset, ios::beg);
+
+    vector<vector<RGBTriple>> templateFlip;
+    vector<vector<RGBTriple>> source;
+    vector<vector<int>> convolutionMap;
+    flipImageHorizontallyAndVertically(templateFile, templateInfoHeader, templateFlip);
+    loadBMPToVector(sourceFile, sourceInfoHeader, source);
+    convolution(templateFlip, source, convolutionMap, templateInfoHeader, sourceInfoHeader);
+
+    RGBTriple temp;
+    for(int i = 0; i < templateInfoHeader.height - 1; ++i)
+        convMapFile.seekp(convMapInfoHeader.width * 3, ios::cur);
+    for (int i = 0; i < sourceInfoHeader.height - templateInfoHeader.height + 1; ++i) {
+        convMapFile.seekp(sizeof(RGBTriple) * (templateInfoHeader.width - 1), ios::cur);
+        for (int j = 0; j < sourceInfoHeader.width - templateInfoHeader.width + 1; ++j) {
+            uint8_t t = static_cast<uint8_t>(convolutionMap[i][j]);
+            temp = {t, t, t};
+            convMapFile.write(reinterpret_cast<char*>(&temp), sizeof(RGBTriple));
+        }
+        //convMapFile.seekp(sizeof(RGBTriple) * (templateInfoHeader.width - 1), ios::cur);
+    }
+
+    templateFile.close();
+    sourceFile.close();
+    convMapFile.close();
+
+    cout << "convolution complete." << endl;
+
+
     return 0;
 
 }
