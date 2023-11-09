@@ -9,11 +9,11 @@ using namespace std;
 int main()
 {
 
-    string fruit = "apple";
-    ifstream templateFile("./assets/hard/" + fruit + "24_grayscale.bmp", ios::binary);
-    ifstream sourceFile("./assets/hard/source24_grayscale.bmp", ios::binary);
-    ofstream convMapFile("./assets/hard/" + fruit + "_convolution.bmp", ios::binary);
-    ofstream redBoxFile("./assets/hard/" + fruit + "_redBox.bmp", ios::binary);
+    string fruit = "gooseberry";//"apple"    "lemon"    "pineapple"    "banana"    "gooseberry"
+    ifstream templateFile("./assets/template/" + fruit + "24_grayscale.bmp", ios::binary);
+    ifstream sourceFile("./assets/source/source24_grayscale.bmp", ios::binary);
+    ofstream convMapFile("./assets/convolutionMap/" + fruit + "_convolution.bmp", ios::binary);
+    ofstream redBoxFile("./assets/result/" + fruit + "_redBox.bmp", ios::binary);
 
     if (!(templateFile && sourceFile)) {
         cerr << "Error opening input.bmp for reading." << endl;
