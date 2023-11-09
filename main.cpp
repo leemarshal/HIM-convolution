@@ -8,9 +8,12 @@ using namespace std;
 
 int main()
 {
-    ifstream templateFile("../assets/hard/apple24_grayscale.bmp", ios::binary);
-    ifstream sourceFile("../assets/hard/total24_grayscale.bmp", ios::binary);
-    ofstream convMapFile("../assets/hard/convolution.bmp", ios::binary);
+
+    string fruit = "lemon";
+    ifstream templateFile("../assets/hard/" + fruit + "24_grayscale.bmp", ios::binary);
+    ifstream sourceFile("../assets/hard/source24_grayscale.bmp", ios::binary);
+    ofstream convMapFile("../assets/hard/" + fruit + "_convolution.bmp", ios::binary);
+    ofstream redBoxFile("../assets/hard/" + fruit + "_redBox.bmp", ios::binary);
 
     if (!(templateFile && sourceFile)) {
         cerr << "Error opening input.bmp for reading." << endl;
@@ -23,6 +26,8 @@ int main()
     BMPINFOHEADER sourceInfoHeader;
     BMPFILEHEADER convMapFileHeader;
     BMPINFOHEADER convMapInfoHeader;
+    BMPFILEHEADER redBoxFileHeader;
+    BMPINFOHEADER redBoxInfoHeader;
 
     templateFile.read(reinterpret_cast<char*>(&templateFileHeader), sizeof(templateFileHeader));
     templateFile.read(reinterpret_cast<char*>(&templateInfoHeader), sizeof(templateInfoHeader));
@@ -33,8 +38,14 @@ int main()
     convMapFileHeader = sourceFileHeader;
     convMapInfoHeader = sourceInfoHeader;
 
+    redBoxFileHeader = sourceFileHeader;
+    redBoxInfoHeader = sourceInfoHeader;
+
     convMapFile.write(reinterpret_cast<char*>(&convMapFileHeader), sizeof(convMapFileHeader));
     convMapFile.write(reinterpret_cast<char*>(&convMapInfoHeader), sizeof(convMapInfoHeader));
+
+    redBoxFile.write(reinterpret_cast<char*>(&redBoxFileHeader), sizeof(redBoxFileHeader));
+    redBoxFile.write(reinterpret_cast<char*>(&redBoxInfoHeader), sizeof(redBoxInfoHeader));
 
     RGBTriple black = {0, 0, 0};
     for (int i = 0; i < convMapInfoHeader.height; ++i) {
@@ -44,29 +55,36 @@ int main()
     }
     convMapFile.seekp(convMapFileHeader.dataOffset, ios::beg);
 
+    vector<vector<RGBTriple>> templateOrigin;
+
     vector<vector<RGBTriple>> templateFlip;
     vector<vector<RGBTriple>> source;
     vector<vector<int>> convolutionMap;
-    flipImageHorizontallyAndVertically(templateFile, templateInfoHeader, templateFlip);
-    loadBMPToVector(sourceFile, sourceInfoHeader, source);
-    convolution(templateFlip, source, convolutionMap, templateInfoHeader, sourceInfoHeader);
+    vector<vector<int>> convolutionSelf;
 
-    RGBTriple temp;
-    for(int i = 0; i < templateInfoHeader.height - 1; ++i)
-        convMapFile.seekp(convMapInfoHeader.width * 3, ios::cur);
-    for (int i = 0; i < sourceInfoHeader.height - templateInfoHeader.height + 1; ++i) {
-        convMapFile.seekp(sizeof(RGBTriple) * (templateInfoHeader.width - 1), ios::cur);
-        for (int j = 0; j < sourceInfoHeader.width - templateInfoHeader.width + 1; ++j) {
-            uint8_t t = static_cast<uint8_t>(convolutionMap[i][j]);
-            temp = {t, t, t};
-            convMapFile.write(reinterpret_cast<char*>(&temp), sizeof(RGBTriple));
-        }
-        //convMapFile.seekp(sizeof(RGBTriple) * (templateInfoHeader.width - 1), ios::cur);
-    }
+    flipImageHorizontallyAndVertically(templateFile, templateInfoHeader, templateFlip);
+    templateFile.seekg(templateFileHeader.dataOffset, ios::beg);
+    loadBMPToVector(templateFile, templateInfoHeader, templateOrigin);
+    loadBMPToVector(sourceFile, sourceInfoHeader, source);
+
+    int convolutionMax = convolution(templateFlip, source, convolutionMap, templateInfoHeader, sourceInfoHeader);
+    drawConvMap(templateInfoHeader, sourceInfoHeader, convMapInfoHeader, convolutionMap, convMapFile);
+
+    int self = convolution(templateFlip, templateOrigin, convolutionSelf, templateInfoHeader, templateInfoHeader);
+    int selfConvolutionValue = static_cast<int>((static_cast<float>(self) /convolutionMax) * 255);
+
+    int h = (sourceInfoHeader.height - templateInfoHeader.height) / templateInfoHeader.height;
+    int w = (sourceInfoHeader.width - templateInfoHeader.width) / templateInfoHeader.width;
+    vector<vector<pair<int, int>>> localMaximum(h, vector<pair<int, int>>(w, {-1, -1}));
+    findLocalMaximum(localMaximum, convolutionMap, templateInfoHeader, selfConvolutionValue, h, w);
+
+    redBox(source, localMaximum, templateInfoHeader);
+    drawRedBox(source,redBoxFile, redBoxInfoHeader.width, redBoxInfoHeader.height);
 
     templateFile.close();
     sourceFile.close();
     convMapFile.close();
+    redBoxFile.close();
 
     cout << "convolution complete." << endl;
 
