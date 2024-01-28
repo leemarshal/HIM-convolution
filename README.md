@@ -7,20 +7,22 @@ HIM-convolution/main.cpp에 12번째줄인 string fruit = “apple”;
 에 “apple” 대신 “lemon” 또는 “pineapple”을 사용하시면 됩니다.
 
 1. 터미널에서 실행하실 때
-소스코드 디렉토리로 이동
 
-&nbsp;cd (과제 폴더 경로)/20196578/HIM-convolution
+&emsp;소스코드 디렉토리로 이동
 
-&ensp;컴파일 (c++ 11이상 버전을 사용하셔야합니다.)
+&emsp;cd (과제 폴더 경로)/20196578/HIM-convolution
+
+&emsp;컴파일 (c++ 11이상 버전을 사용하셔야합니다.)
 
 &emsp;g++ -o convolution main.cpp
 
-&nbsp;실행
+&emsp;실행
 
-&nbsp;./convolution
+&emsp;./convolution
 
-3. ide에서 실행하실 때
-저는 CLion을 작업했으며 main.cpp에서 run하시면 됩니다.
+2. ide에서 실행하실 때
+
+&emsp;저는 CLion을 작업했으며 main.cpp에서 run하시면 됩니다.
 
 이미지 결과 안내문
 
