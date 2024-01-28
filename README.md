@@ -8,13 +8,25 @@ HIM-convolution/main.cpp에 12번째줄인 string fruit = “apple”;
 
 1. 터미널에서 실행하실 때
 소스코드 디렉토리로 이동
+<details>
+<summary>접기/펼치기</summary>
+<div markdown="1">
+
+```
+
 cd (과제 폴더 경로)/20196578/HIM-convolution
+
+```
+
+</div>
+</details>
+
 컴파일 (c++ 11이상 버전을 사용하셔야합니다.)
 g++ -o convolution main.cpp
 실행
 ./convolution
 
-2. ide에서 실행하실 때
+3. ide에서 실행하실 때
 저는 CLion을 작업했으며 main.cpp에서 run하시면 됩니다.
 
 이미지 결과 안내문
