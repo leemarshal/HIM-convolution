@@ -9,9 +9,9 @@ HIM-convolution/main.cpp에 12번째줄인 string fruit = “apple”;
 1. 터미널에서 실행하실 때
 
 &emsp;소스코드 디렉토리로 이동
-
+'''
 &emsp;cd (과제 폴더 경로)/20196578/HIM-convolution
-
+'''
 &emsp;컴파일 (c++ 11이상 버전을 사용하셔야합니다.)
 
 &emsp;g++ -o convolution main.cpp
