@@ -8,7 +8,7 @@ HIM-convolution/main.cpp에 12번째줄인 string fruit = “apple”;
 
 1. 터미널에서 실행하실 때
 소스코드 디렉토리로 이동
-<details>
+&nbsp;<details>
 <summary>접기/펼치기</summary>
 <div markdown="1">
 
