@@ -11,10 +11,12 @@ HIM-convolution/main.cpp에 12번째줄인 string fruit = “apple”;
 
 &nbsp;cd (과제 폴더 경로)/20196578/HIM-convolution
 
-&nbsp;컴파일 (c++ 11이상 버전을 사용하셔야합니다.)
-&nbsp;g++ -o convolution main.cpp
+&ensp;컴파일 (c++ 11이상 버전을 사용하셔야합니다.)
+
+&emsp;g++ -o convolution main.cpp
 
 &nbsp;실행
+
 &nbsp;./convolution
 
 3. ide에서 실행하실 때
